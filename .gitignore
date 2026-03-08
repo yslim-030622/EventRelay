@@ -1,0 +1,50 @@
+# === Java / Gradle ===
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+*.class
+*.jar
+*.war
+*.ear
+
+# === IDE ===
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Environment ===
+.env
+.env.local
+.env.*.local
+
+# === Node / Frontend ===
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env.local
+frontend/.vite/
+
+# === Docker ===
+docker-compose.override.yml
+
+# === Logs ===
+*.log
+logs/
+
+# === Implementation docs (agent reference only) ===
+docs/IMPLEMENTATION.md
+CLAUDE.md
+.claude/
+.omx/

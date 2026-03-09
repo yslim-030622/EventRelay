@@ -21,7 +21,7 @@ public class GitHubEventConsumer {
         this.githubQueueName = githubQueueName;
     }
 
-    @RabbitListener(queues = "#{@githubEventConsumer.githubQueueName}")
+    @RabbitListener(queues = "${app.messaging.github-queue-name}")
     @CircuitBreaker(name = "githubConsumer")
     @Retry(name = "githubConsumerRetry")
     public void consume(Long eventPk) {

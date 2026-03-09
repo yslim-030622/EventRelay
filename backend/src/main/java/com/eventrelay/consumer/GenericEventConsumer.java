@@ -19,7 +19,7 @@ public class GenericEventConsumer {
         this.genericQueueName = genericQueueName;
     }
 
-    @RabbitListener(queues = "#{@genericEventConsumer.genericQueueName}")
+    @RabbitListener(queues = "${app.messaging.generic-queue-name}")
     public void consume(Long eventPk) {
         eventProcessingService.process(eventPk, "generic-consumer");
     }

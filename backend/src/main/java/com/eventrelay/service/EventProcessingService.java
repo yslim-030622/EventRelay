@@ -51,7 +51,7 @@ public class EventProcessingService {
             recordDelivery(event, consumerName, "failed", exception.getMessage(), startedAt);
 
             if (event.getRetryCount() >= 3) {
-                deadLetterService.moveToDeadLetter(event, exception.getMessage());
+                deadLetterService.moveToDeadLetter(event, exception.getMessage(), "Max retries exceeded");
             }
         }
     }

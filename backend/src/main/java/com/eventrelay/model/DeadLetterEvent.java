@@ -34,6 +34,9 @@ public class DeadLetterEvent {
     @Column(name = "error_message", nullable = false, columnDefinition = "TEXT")
     private String errorMessage;
 
+    @Column(name = "reason", columnDefinition = "TEXT")
+    private String reason;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

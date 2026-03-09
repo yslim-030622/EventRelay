@@ -11,6 +11,7 @@ public record DeadLetterResponse(
     String eventType,
     String source,
     String errorMessage,
+    String reason,
     boolean replayed,
     Instant createdAt,
     Instant replayedAt
@@ -23,6 +24,7 @@ public record DeadLetterResponse(
             deadLetterEvent.getEvent().getEventType(),
             deadLetterEvent.getEvent().getSource().getName(),
             deadLetterEvent.getErrorMessage(),
+            deadLetterEvent.getReason(),
             deadLetterEvent.isReplayed(),
             deadLetterEvent.getCreatedAt(),
             deadLetterEvent.getReplayedAt()

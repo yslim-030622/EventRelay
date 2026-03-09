@@ -31,7 +31,7 @@ public class DeadLetterService {
     }
 
     @Transactional
-    public DeadLetterEvent moveToDeadLetter(IncomingEvent event, String errorMessage) {
+    public DeadLetterEvent moveToDeadLetter(IncomingEvent event, String errorMessage, String reason) {
         event.setStatus(EventStatus.DEAD_LETTER);
         event.setLastError(errorMessage);
         incomingEventRepository.save(event);
@@ -39,6 +39,7 @@ public class DeadLetterService {
         DeadLetterEvent deadLetterEvent = new DeadLetterEvent();
         deadLetterEvent.setEvent(event);
         deadLetterEvent.setErrorMessage(errorMessage);
+        deadLetterEvent.setReason(reason);
         return deadLetterEventRepository.save(deadLetterEvent);
     }
 

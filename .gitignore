@@ -35,6 +35,9 @@ frontend/build/
 frontend/dist/
 frontend/.env.local
 frontend/.vite/
+frontend/tsconfig.*.tsbuildinfo
+frontend/vite.config.d.ts
+frontend/vite.config.js
 
 # === Docker ===
 docker-compose.override.yml
@@ -43,8 +46,10 @@ docker-compose.override.yml
 *.log
 logs/
 
-# === Implementation docs (agent reference only) ===
+# === Implementation docs & AI workflow (agent reference only) ===
 docs/IMPLEMENTATION.md
+docs/ai-workflow/
 CLAUDE.md
 .claude/
 .omx/
+resume.md

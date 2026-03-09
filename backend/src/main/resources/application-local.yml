@@ -17,3 +17,6 @@ spring:
     port: 5672
     username: guest
     password: guest
+
+app:
+  discord-webhook-url: ${DISCORD_WEBHOOK_URL:}

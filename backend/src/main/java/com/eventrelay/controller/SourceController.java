@@ -4,6 +4,7 @@ import com.eventrelay.dto.SourceRequest;
 import com.eventrelay.dto.SourceResponse;
 import com.eventrelay.service.SourceService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,6 @@ public class SourceController {
 
     @PostMapping
     public ResponseEntity<SourceResponse> createSource(@Valid @RequestBody SourceRequest request) {
-        return ResponseEntity.ok(SourceResponse.from(sourceService.create(request)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(SourceResponse.from(sourceService.create(request)));
     }
 }

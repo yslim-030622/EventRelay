@@ -66,6 +66,12 @@ public class IncomingEvent {
     @Column(name = "retry_count", nullable = false)
     private int retryCount = 0;
 
+    @Column(name = "max_retries", nullable = false)
+    private int maxRetries = 5;
+
+    @Column(name = "next_retry_at")
+    private Instant nextRetryAt;
+
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
 

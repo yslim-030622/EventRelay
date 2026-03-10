@@ -37,6 +37,7 @@ app:
     exchange-name: events.exchange
     github-queue-name: events.github
     generic-queue-name: events.generic
+    payment-queue-name: events.payment
     dead-letter-queue-name: events.dead-letter
 
 resilience4j:

@@ -24,6 +24,9 @@ public class RabbitConfig {
     @Value("${app.messaging.generic-queue-name}")
     private String genericQueueName;
 
+    @Value("${app.messaging.payment-queue-name}")
+    private String paymentQueueName;
+
     @Value("${app.messaging.dead-letter-queue-name}")
     private String deadLetterQueueName;
 
@@ -49,6 +52,14 @@ public class RabbitConfig {
     }
 
     @Bean
+    public Queue paymentQueue() {
+        return QueueBuilder.durable(paymentQueueName)
+            .withArgument("x-dead-letter-exchange", exchangeName)
+            .withArgument("x-dead-letter-routing-key", "dead-letter")
+            .build();
+    }
+
+    @Bean
     public Queue deadLetterQueue() {
         return QueueBuilder.durable(deadLetterQueueName).build();
     }
@@ -61,6 +72,11 @@ public class RabbitConfig {
     @Bean
     public Binding genericBinding() {
         return BindingBuilder.bind(genericQueue()).to(eventExchange()).with("generic.#");
+    }
+
+    @Bean
+    public Binding paymentBinding() {
+        return BindingBuilder.bind(paymentQueue()).to(eventExchange()).with("payment.#");
     }
 
     @Bean

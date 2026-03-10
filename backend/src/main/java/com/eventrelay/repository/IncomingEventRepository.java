@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,4 +36,13 @@ public interface IncomingEventRepository extends JpaRepository<IncomingEvent, Lo
     Optional<IncomingEvent> findByEventId(String eventId);
 
     long countByStatus(EventStatus status);
+
+    @Query("SELECT e.status, COUNT(e) FROM IncomingEvent e GROUP BY e.status")
+    List<Object[]> countByStatusGrouped();
+
+    @Query("SELECT e.source.name, e.status, COUNT(e) FROM IncomingEvent e GROUP BY e.source.name, e.status")
+    List<Object[]> countBySourceAndStatusGrouped();
+
+    @Query("SELECT e.eventType, COUNT(e) FROM IncomingEvent e GROUP BY e.eventType")
+    List<Object[]> countByTypeGrouped();
 }

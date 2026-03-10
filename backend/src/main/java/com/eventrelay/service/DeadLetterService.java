@@ -18,15 +18,18 @@ public class DeadLetterService {
     private final DeadLetterEventRepository deadLetterEventRepository;
     private final IncomingEventRepository incomingEventRepository;
     private final EventRoutingService eventRoutingService;
+    private final DiscordAlertService discordAlertService;
 
     public DeadLetterService(
         DeadLetterEventRepository deadLetterEventRepository,
         IncomingEventRepository incomingEventRepository,
-        EventRoutingService eventRoutingService
+        EventRoutingService eventRoutingService,
+        DiscordAlertService discordAlertService
     ) {
         this.deadLetterEventRepository = deadLetterEventRepository;
         this.incomingEventRepository = incomingEventRepository;
         this.eventRoutingService = eventRoutingService;
+        this.discordAlertService = discordAlertService;
     }
 
     public List<DeadLetterEvent> findAll() {
@@ -43,7 +46,15 @@ public class DeadLetterService {
         deadLetterEvent.setEvent(event);
         deadLetterEvent.setErrorMessage(errorMessage);
         deadLetterEvent.setReason(reason);
-        return deadLetterEventRepository.save(deadLetterEvent);
+        DeadLetterEvent saved = deadLetterEventRepository.save(deadLetterEvent);
+
+        discordAlertService.sendAlert(
+            "Dead Letter: " + event.getSource().getName() + " / " + event.getEventType(),
+            "Event ID: " + event.getEventId() + "\nError: " + errorMessage,
+            0xFF0000
+        );
+
+        return saved;
     }
 
     @Transactional

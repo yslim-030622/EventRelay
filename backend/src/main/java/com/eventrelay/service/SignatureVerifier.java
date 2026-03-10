@@ -6,6 +6,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Instant;
 import java.util.Map;
 
 @Service
@@ -18,6 +19,7 @@ public class SignatureVerifier {
 
         return switch (sourceName) {
             case "github" -> verifyGitHub(payload, getHeader(headers, "x-hub-signature-256"), secret);
+            case "stripe" -> verifyStripe(payload, getHeader(headers, "stripe-signature"), secret);
             default -> true;
         };
     }
@@ -31,6 +33,41 @@ public class SignatureVerifier {
         return MessageDigest.isEqual(
             expected.getBytes(StandardCharsets.UTF_8),
             signature.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
+    public boolean verifyStripe(byte[] payload, String signature, String secret) {
+        if (signature == null || signature.isBlank()) {
+            return false;
+        }
+
+        String timestamp = null;
+        String v1Sig = null;
+        for (String part : signature.split(",")) {
+            if (part.startsWith("t=")) timestamp = part.substring(2);
+            else if (part.startsWith("v1=")) v1Sig = part.substring(3);
+        }
+        if (timestamp == null || v1Sig == null) {
+            return false;
+        }
+
+        long ts;
+        try {
+            ts = Long.parseLong(timestamp);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        long nowEpoch = Instant.now().getEpochSecond();
+        if (Math.abs(nowEpoch - ts) > 300) {
+            return false;
+        }
+
+        String signedPayload = timestamp + "." + new String(payload, StandardCharsets.UTF_8);
+        String expected = hmacSha256Hex(secret, signedPayload.getBytes(StandardCharsets.UTF_8));
+        return MessageDigest.isEqual(
+            expected.getBytes(StandardCharsets.UTF_8),
+            v1Sig.getBytes(StandardCharsets.UTF_8)
         );
     }
 

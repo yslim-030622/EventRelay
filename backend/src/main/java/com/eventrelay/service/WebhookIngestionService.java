@@ -55,7 +55,8 @@ public class WebhookIngestionService {
             );
         }
 
-        String eventId = extractEventId(sourceName, headerMap);
+        Map<String, Object> payload = parsePayload(payloadBytes);
+        String eventId = extractEventId(sourceName, headerMap, payload);
         if (deduplicationService.isDuplicate(eventId)) {
             return new IngestionResult(
                 HttpStatus.OK,
@@ -63,7 +64,6 @@ public class WebhookIngestionService {
             );
         }
 
-        Map<String, Object> payload = parsePayload(payloadBytes);
         String eventType = extractEventType(sourceName, headerMap, payload);
 
         IncomingEvent event = new IncomingEvent();
@@ -101,9 +101,12 @@ public class WebhookIngestionService {
         }
     }
 
-    private String extractEventId(String sourceName, Map<String, Object> headers) {
+    private String extractEventId(String sourceName, Map<String, Object> headers, Map<String, Object> payload) {
         if ("github".equals(sourceName) && headers.containsKey("x-github-delivery")) {
             return headers.get("x-github-delivery").toString();
+        }
+        if ("stripe".equals(sourceName) && payload.containsKey("id")) {
+            return payload.get("id").toString();
         }
         return UUID.randomUUID().toString();
     }
@@ -118,12 +121,20 @@ public class WebhookIngestionService {
             return eventName + "." + action;
         }
 
+        if ("stripe".equals(sourceName)) {
+            Object type = payload.get("type");
+            return type != null ? type.toString() : "unknown";
+        }
+
         return "unknown";
     }
 
     private String routingKey(String sourceName, String eventType) {
         if ("github".equals(sourceName)) {
             return "github." + eventType;
+        }
+        if ("stripe".equals(sourceName)) {
+            return "payment." + eventType;
         }
         return "generic." + eventType;
     }

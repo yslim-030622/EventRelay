@@ -65,6 +65,7 @@ public class WebhookIngestionService {
         }
 
         String eventType = extractEventType(sourceName, headerMap, payload);
+        String routingKey = routingKey(sourceName, eventType);
 
         IncomingEvent event = new IncomingEvent();
         event.setEventId(eventId);
@@ -73,9 +74,10 @@ public class WebhookIngestionService {
         event.setHeaders(headerMap);
         event.setPayload(payload);
         event.setStatus(EventStatus.RECEIVED);
+        event.setMaxRetries(eventRoutingService.getMaxRetries(routingKey));
 
         IncomingEvent savedEvent = incomingEventRepository.save(event);
-        eventRoutingService.publish(savedEvent.getId(), routingKey(sourceName, eventType));
+        eventRoutingService.publish(savedEvent.getId(), routingKey);
 
         return new IngestionResult(
             HttpStatus.ACCEPTED,

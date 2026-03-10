@@ -21,4 +21,20 @@ public class EventRoutingService {
     public void publish(Long eventPk, String routingKey) {
         rabbitTemplate.convertAndSend(exchangeName, routingKey, eventPk);
     }
+
+    public int getMaxRetries(String eventType) {
+        if (eventType == null) {
+            return 5;
+        }
+        if (eventType.startsWith("payment.")) {
+            return 10;
+        }
+        if (eventType.startsWith("github.push")) {
+            return 3;
+        }
+        if (eventType.startsWith("github.pull_request") || eventType.startsWith("github.issues")) {
+            return 3;
+        }
+        return 5;
+    }
 }

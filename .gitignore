@@ -1,6 +1,8 @@
 # === Java / Gradle ===
 .gradle/
 build/
+bin/
+.factorypath
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 *.class

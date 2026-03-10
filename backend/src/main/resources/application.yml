@@ -50,8 +50,18 @@ resilience4j:
         minimum-number-of-calls: 5
         wait-duration-in-open-state: 30s
         permitted-number-of-calls-in-half-open-state: 3
+      paymentConsumer:
+        register-health-indicator: true
+        failure-rate-threshold: 50
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
   retry:
     instances:
       githubConsumerRetry:
+        max-attempts: 3
+        wait-duration: 2s
+      paymentConsumerRetry:
         max-attempts: 3
         wait-duration: 2s

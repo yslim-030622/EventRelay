@@ -17,13 +17,16 @@ public class DeadLetterService {
 
     private final DeadLetterEventRepository deadLetterEventRepository;
     private final IncomingEventRepository incomingEventRepository;
+    private final EventRoutingService eventRoutingService;
 
     public DeadLetterService(
         DeadLetterEventRepository deadLetterEventRepository,
-        IncomingEventRepository incomingEventRepository
+        IncomingEventRepository incomingEventRepository,
+        EventRoutingService eventRoutingService
     ) {
         this.deadLetterEventRepository = deadLetterEventRepository;
         this.incomingEventRepository = incomingEventRepository;
+        this.eventRoutingService = eventRoutingService;
     }
 
     public List<DeadLetterEvent> findAll() {
@@ -50,7 +53,26 @@ public class DeadLetterService {
 
         deadLetterEvent.setReplayed(true);
         deadLetterEvent.setReplayedAt(Instant.now());
-        deadLetterEvent.getEvent().setStatus(EventStatus.RECEIVED);
-        deadLetterEvent.getEvent().setLastError(null);
+
+        IncomingEvent event = deadLetterEvent.getEvent();
+        event.setStatus(EventStatus.RECEIVED);
+        event.setRetryCount(0);
+        event.setProcessedAt(null);
+        event.setLastError(null);
+        event.setNextRetryAt(null);
+        incomingEventRepository.save(event);
+
+        String sourceName = event.getSource().getName();
+        String eventType = event.getEventType();
+        String routingKey = recomputeRoutingKey(sourceName, eventType);
+        eventRoutingService.publish(event.getId(), routingKey);
+    }
+
+    private String recomputeRoutingKey(String sourceName, String eventType) {
+        return switch (sourceName) {
+            case "github" -> "github." + eventType;
+            case "stripe" -> "payment." + eventType;
+            default -> "generic." + eventType;
+        };
     }
 }

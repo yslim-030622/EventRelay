@@ -2,7 +2,6 @@ package com.eventrelay.service;
 
 import com.eventrelay.dto.MetricsSummaryResponse;
 import com.eventrelay.model.EventStatus;
-import com.eventrelay.model.IncomingEvent;
 import com.eventrelay.repository.IncomingEventRepository;
 import org.springframework.stereotype.Service;
 
@@ -33,43 +32,36 @@ public class MetricsService {
 
     public List<Map<String, Object>> bySource() {
         Map<String, long[]> grouped = new LinkedHashMap<>();
-        for (IncomingEvent event : incomingEventRepository.findAll()) {
-            String source = event.getSource().getName();
+        for (Object[] row : incomingEventRepository.countBySourceAndStatusGrouped()) {
+            String source = (String) row[0];
+            EventStatus status = (EventStatus) row[1];
+            long count = (Long) row[2];
             long[] counts = grouped.computeIfAbsent(source, ignored -> new long[3]);
-            counts[0]++;
-            if (event.getStatus() == EventStatus.PROCESSED) {
-                counts[1]++;
-            }
-            if (event.getStatus() == EventStatus.DEAD_LETTER) {
-                counts[2]++;
-            }
+            counts[0] += count;
+            if (status == EventStatus.PROCESSED) counts[1] += count;
+            if (status == EventStatus.DEAD_LETTER) counts[2] += count;
         }
 
         List<Map<String, Object>> response = new ArrayList<>();
         grouped.forEach((source, counts) -> {
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("source", source);
-            row.put("total", counts[0]);
-            row.put("processed", counts[1]);
-            row.put("deadLetter", counts[2]);
-            response.add(row);
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("source", source);
+            result.put("total", counts[0]);
+            result.put("processed", counts[1]);
+            result.put("deadLetter", counts[2]);
+            response.add(result);
         });
         return response;
     }
 
     public List<Map<String, Object>> byType() {
-        Map<String, Long> grouped = new LinkedHashMap<>();
-        for (IncomingEvent event : incomingEventRepository.findAll()) {
-            grouped.merge(event.getEventType(), 1L, Long::sum);
-        }
-
         List<Map<String, Object>> response = new ArrayList<>();
-        grouped.forEach((type, total) -> {
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("eventType", type);
-            row.put("total", total);
-            response.add(row);
-        });
+        for (Object[] row : incomingEventRepository.countByTypeGrouped()) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("eventType", row[0]);
+            result.put("total", row[1]);
+            response.add(result);
+        }
         return response;
     }
 }

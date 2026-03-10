@@ -32,8 +32,7 @@ public class DeadLetterController {
         deadLetterService.markReplayed(id);
         return ResponseEntity.accepted().body(Map.of(
             "id", id,
-            "status", "queued",
-            "message", "Replay pipeline hook is ready for implementation"
+            "status", "queued"
         ));
     }
 }

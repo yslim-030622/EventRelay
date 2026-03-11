@@ -1,12 +1,19 @@
 package com.eventrelay.consumer;
 
+import com.eventrelay.model.IncomingEvent;
 import com.eventrelay.service.EventProcessingService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
 public class GenericEventConsumer {
+
+    private static final String CONSUMER_NAME = "generic-consumer";
 
     private final EventProcessingService eventProcessingService;
     private final String genericQueueName;
@@ -20,8 +27,24 @@ public class GenericEventConsumer {
     }
 
     @RabbitListener(queues = "${app.messaging.generic-queue-name}")
+    @CircuitBreaker(name = "genericConsumer", fallbackMethod = "fallback")
+    @Retry(name = "genericConsumerRetry")
     public void consume(Long eventPk) {
-        eventProcessingService.process(eventPk, "generic-consumer");
+        long startedAt = System.currentTimeMillis();
+        IncomingEvent event = eventProcessingService.beginProcessing(eventPk, CONSUMER_NAME);
+        try {
+            Map<String, Object> payload = event.getPayload();
+            if (payload != null && Boolean.TRUE.equals(payload.get("_forceFailure"))) {
+                throw new RuntimeException("Forced failure for testing");
+            }
+            eventProcessingService.markSuccess(event, CONSUMER_NAME, startedAt);
+        } catch (Exception e) {
+            eventProcessingService.recordFailureAttempt(event, CONSUMER_NAME, e, startedAt);
+        }
+    }
+
+    public void fallback(Long eventPk, Throwable e) {
+        eventProcessingService.finalizeDeadLetter(eventPk, e.getMessage());
     }
 
     public String getGenericQueueName() {

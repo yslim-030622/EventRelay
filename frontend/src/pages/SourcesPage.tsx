@@ -36,7 +36,11 @@ export function SourcesPage() {
               <tr key={source.id}>
                 <td>{source.name}</td>
                 <td>{source.displayName}</td>
-                <td>{source.active ? 'Yes' : 'No'}</td>
+                <td>
+                  <span className={`status-badge status-badge-${source.active ? 'active' : 'inactive'}`}>
+                    {source.active ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
                 <td>{new Date(source.createdAt).toLocaleString()}</td>
               </tr>
             ))}

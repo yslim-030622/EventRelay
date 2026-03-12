@@ -229,6 +229,25 @@ pre {
   padding: 0.6rem 1rem;
 }
 
+.status-badge {
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.status-badge-active {
+  background: rgba(76, 175, 130, 0.18);
+  color: #4caf82;
+}
+
+.status-badge-inactive {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(242, 243, 239, 0.45);
+}
+
 .cb-grid {
   display: grid;
   gap: 1rem;

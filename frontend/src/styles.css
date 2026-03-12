@@ -200,6 +200,11 @@ pre {
   background: #4a7de0;
 }
 
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.65rem;
+}
+
 .btn-secondary {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -222,6 +227,29 @@ pre {
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
   padding: 0.6rem 1rem;
+}
+
+.toggle-label {
+  align-items: center;
+  color: rgba(242, 243, 239, 0.78);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.875rem;
+  gap: 0.4rem;
+}
+
+.toggle-label input[type='checkbox'] {
+  accent-color: #5b8dee;
+  cursor: pointer;
+}
+
+.error-cell {
+  color: #f28b82;
+  font-size: 0.8rem;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .filter-bar {

@@ -1,6 +1,7 @@
 package com.eventrelay.repository;
 
 import com.eventrelay.model.DeadLetterEvent;
+import com.eventrelay.model.IncomingEvent;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -16,4 +17,7 @@ public interface DeadLetterEventRepository extends JpaRepository<DeadLetterEvent
     @Override
     @EntityGraph(attributePaths = {"event", "event.source"})
     Optional<DeadLetterEvent> findById(Long id);
+
+    @EntityGraph(attributePaths = {"event", "event.source"})
+    Optional<DeadLetterEvent> findByEvent(IncomingEvent event);
 }

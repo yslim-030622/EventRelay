@@ -42,10 +42,17 @@ public class DeadLetterService {
         event.setLastError(errorMessage);
         incomingEventRepository.save(event);
 
-        DeadLetterEvent deadLetterEvent = new DeadLetterEvent();
-        deadLetterEvent.setEvent(event);
+        DeadLetterEvent deadLetterEvent = deadLetterEventRepository.findByEvent(event)
+            .orElseGet(() -> {
+                DeadLetterEvent newDeadLetterEvent = new DeadLetterEvent();
+                newDeadLetterEvent.setEvent(event);
+                return newDeadLetterEvent;
+            });
         deadLetterEvent.setErrorMessage(errorMessage);
         deadLetterEvent.setReason(reason);
+        deadLetterEvent.setReplayed(false);
+        deadLetterEvent.setReplayedAt(null);
+
         DeadLetterEvent saved = deadLetterEventRepository.save(deadLetterEvent);
 
         discordAlertService.sendAlert(

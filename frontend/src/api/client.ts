@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { DeadLetterItem, EventDetail, EventItem, MetricsSummary, Source } from './contracts';
+import type { CircuitBreakerInfo, DeadLetterItem, EventDetail, EventItem, MetricsSummary, Source } from './contracts';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api'
@@ -44,5 +44,18 @@ export async function getMetricsByType(): Promise<Array<Record<string, unknown>>
 
 export async function getDeadLetters(): Promise<DeadLetterItem[]> {
   const response = await api.get<DeadLetterItem[]>('/dead-letters');
+  return response.data;
+}
+
+export async function replayEvent(id: number): Promise<void> {
+  await api.post(`/events/${id}/replay`);
+}
+
+export async function replayDeadLetter(id: number): Promise<void> {
+  await api.post(`/dead-letters/${id}/replay`);
+}
+
+export async function getCircuitBreakerStatus(): Promise<CircuitBreakerInfo[]> {
+  const response = await api.get<CircuitBreakerInfo[]>('/metrics/circuit-breaker');
   return response.data;
 }

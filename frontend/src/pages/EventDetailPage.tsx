@@ -1,18 +1,38 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { getEvent } from '../api/client';
+import { Link, useParams } from 'react-router-dom';
+import { getEvent, replayEvent } from '../api/client';
 import type { EventDetail } from '../api/contracts';
 
 export function EventDetailPage() {
   const { id = '' } = useParams();
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [replaying, setReplaying] = useState(false);
+  const [replayMsg, setReplayMsg] = useState<string | null>(null);
 
-  useEffect(() => {
+  function loadEvent() {
     getEvent(id)
       .then(setEvent)
       .catch(() => setError('Unable to load event details.'));
+  }
+
+  useEffect(() => {
+    loadEvent();
   }, [id]);
+
+  async function handleReplay() {
+    setReplaying(true);
+    setReplayMsg(null);
+    try {
+      await replayEvent(Number(id));
+      setReplayMsg('Event queued for replay.');
+      loadEvent();
+    } catch {
+      setReplayMsg('Replay failed. Check the backend logs.');
+    } finally {
+      setReplaying(false);
+    }
+  }
 
   return (
     <section className="panel-stack">
@@ -21,7 +41,20 @@ export function EventDetailPage() {
           <p className="eyebrow">Trace view</p>
           <h2>Event detail</h2>
         </div>
+        <div className="panel-heading-actions">
+          <Link to="/events" className="btn-secondary">
+            ← Back to events
+          </Link>
+          <button
+            className="btn-primary"
+            onClick={handleReplay}
+            disabled={replaying}
+          >
+            {replaying ? 'Replaying…' : 'Replay event'}
+          </button>
+        </div>
       </header>
+      {replayMsg ? <div className="alert-banner">{replayMsg}</div> : null}
       {error ? <div className="panel empty-state">{error}</div> : null}
       {event ? (
         <>

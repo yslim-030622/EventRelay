@@ -54,3 +54,13 @@ export type DeadLetterItem = {
   createdAt: string;
   replayedAt: string | null;
 };
+
+export type CircuitBreakerInfo = {
+  name: string;
+  state: string;
+  failureRate: number;
+  slowCallRate: number;
+  bufferedCalls: number;
+  failedCalls: number;
+  successfulCalls: number;
+};

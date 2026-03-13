@@ -18,7 +18,7 @@
 | C — Resilience + Alerting | COMPLETE | 2026-03-10 | 2026-03-11 | 5/5 | |
 | D — Tests | COMPLETE | 2026-03-11 | 2026-03-11 | 5/5 | |
 | E — Frontend Completion | COMPLETE | 2026-03-11 | 2026-03-12 | 7/7 | |
-| F — Deploy + Polish | IN_PROGRESS | 2026-03-13 | | 4/5 | |
+| F — Deploy + Polish | COMPLETE | 2026-03-13 | 2026-03-13 | 5/5 | |
 
 ---
 
@@ -72,6 +72,7 @@ _AI: Record what was accomplished_
 - F2: GitHub Actions backend job uses `./gradlew build` with test profile and postgres/redis services
 - F3: README rewritten with architecture diagram, feature list, tech stack table, API table, design decisions, and local dev guide
 - F4: docker compose clean rebuild passes and signed GitHub webhook is visible through frontend proxy endpoints
+- F5: final cleanup verified no remaining TODOs or committed secrets, added `.gradle-home/` to `.gitignore`, and confirmed tests/build pass
 
 ### Day 7 (2026-03-14)
 

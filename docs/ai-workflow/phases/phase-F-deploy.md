@@ -126,7 +126,7 @@ curl localhost:3000/api/metrics/summary
   - Verify no secrets in committed files
   - Verify .gitignore covers all necessary paths
   - Final `./gradlew test` + `npm run build`
-- [ ] Done
+- [x] Done
 
 ## Gate Check
 

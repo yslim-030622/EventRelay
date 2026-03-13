@@ -18,7 +18,7 @@
 | C — Resilience + Alerting | COMPLETE | 2026-03-10 | 2026-03-11 | 5/5 | |
 | D — Tests | COMPLETE | 2026-03-11 | 2026-03-11 | 5/5 | |
 | E — Frontend Completion | COMPLETE | 2026-03-11 | 2026-03-12 | 7/7 | |
-| F — Deploy + Polish | NOT_STARTED | | | 1/5 | |
+| F — Deploy + Polish | NOT_STARTED | | | 2/5 | |
 
 ---
 
@@ -69,6 +69,7 @@ _AI: Record what was accomplished_
 _AI: Record what was accomplished_
 
 - F1: frontend nginx adds `/api/` proxy to backend service
+- F2: GitHub Actions backend job uses `./gradlew build` with test profile and postgres/redis services
 
 ### Day 7 (2026-03-14)
 

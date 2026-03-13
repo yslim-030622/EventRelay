@@ -72,7 +72,7 @@ server {
   - SPRING_PROFILES_ACTIVE=test
   - Java 17 setup
 - **Spec ref**: IMPLEMENTATION.md lines 2985-3043
-- [ ] Done
+- [x] Done
 
 ### F3: `docs: write portfolio-ready README`
 

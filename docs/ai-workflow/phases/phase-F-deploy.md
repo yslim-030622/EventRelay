@@ -86,7 +86,7 @@ server {
   6. Design decisions (3-4 with reasoning: why EventStatus enum, why service layer extraction, why topic exchange, why Redis dedup)
   7. Local development: `docker compose up --build`, open localhost:3000
   8. Running tests: `cd backend && ./gradlew test`
-- [ ] Done
+- [x] Done
 
 ### F4: `chore(docker): verify full-stack Docker Compose`
 
@@ -117,7 +117,7 @@ curl localhost:3000/api/events
 curl localhost:3000/api/metrics/summary
 ```
 
-- [ ] Done
+- [x] Done
 
 ### F5: `chore: final cleanup`
 

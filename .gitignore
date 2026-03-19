@@ -4,12 +4,14 @@
 build/
 bin/
 .factorypath
-!gradle/wrapper/gradle-wrapper.jar
-!gradle/wrapper/gradle-wrapper.properties
 *.class
 *.jar
 *.war
 *.ear
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!backend/gradle/wrapper/gradle-wrapper.jar
+!backend/gradle/wrapper/gradle-wrapper.properties
 
 # === IDE ===
 .idea/

@@ -27,8 +27,8 @@ public class GitHubEventConsumer {
     }
 
     @RabbitListener(queues = "${app.messaging.github-queue-name}")
-    @CircuitBreaker(name = "githubConsumer", fallbackMethod = "fallback")
-    @Retry(name = "githubConsumerRetry")
+    @CircuitBreaker(name = "githubConsumer")
+    @Retry(name = "githubConsumerRetry", fallbackMethod = "fallback")
     public void consume(Long eventPk) {
         long startedAt = System.currentTimeMillis();
         IncomingEvent event = eventProcessingService.beginProcessing(eventPk, CONSUMER_NAME);

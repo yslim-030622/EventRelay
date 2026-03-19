@@ -27,8 +27,8 @@ public class GenericEventConsumer {
     }
 
     @RabbitListener(queues = "${app.messaging.generic-queue-name}")
-    @CircuitBreaker(name = "genericConsumer", fallbackMethod = "fallback")
-    @Retry(name = "genericConsumerRetry")
+    @CircuitBreaker(name = "genericConsumer")
+    @Retry(name = "genericConsumerRetry", fallbackMethod = "fallback")
     public void consume(Long eventPk) {
         long startedAt = System.currentTimeMillis();
         IncomingEvent event = eventProcessingService.beginProcessing(eventPk, CONSUMER_NAME);

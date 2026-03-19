@@ -27,8 +27,8 @@ public class PaymentEventConsumer {
     }
 
     @RabbitListener(queues = "${app.messaging.payment-queue-name}")
-    @CircuitBreaker(name = "paymentConsumer", fallbackMethod = "fallback")
-    @Retry(name = "paymentConsumerRetry")
+    @CircuitBreaker(name = "paymentConsumer")
+    @Retry(name = "paymentConsumerRetry", fallbackMethod = "fallback")
     public void consume(Long eventPk) {
         long startedAt = System.currentTimeMillis();
         IncomingEvent event = eventProcessingService.beginProcessing(eventPk, CONSUMER_NAME);

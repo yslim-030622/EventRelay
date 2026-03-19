@@ -14,83 +14,51 @@ I built EventRelay to understand what production webhook infrastructure actually
 
 ## Architecture Overview
 
-```
-                              EventRelay Ingestion Pipeline
-  ─────────────────────────────────────────────────────────────────────────
-  External        Ingestion             Broker              Consumers
-  Service         Layer                 Layer               Layer
-  ─────────────────────────────────────────────────────────────────────────
+```mermaid
+flowchart TD
+    ext["GitHub / Stripe / Other"]
+    wh["POST /api/webhooks/{source}"]
+    sig{"HMAC Verify"}
+    dedup{"Dedup — Redis SET NX"}
+    db[("PostgreSQL")]
+    mq["RabbitMQ — TopicExchange"]
+    consumers["Payment · GitHub · Generic\nConsumers"]
+    r4j{"Resilience4j\nRetry + CircuitBreaker"}
+    done(["PROCESSED"])
+    dl(["DEAD_LETTER + Discord Alert"])
 
-  GitHub  ──┐
-  Stripe  ──┼──▶  POST /api/webhooks/{source}
-  Other   ──┘              │
-                           │
-                    ┌──────▼───────┐
-                    │ Verify HMAC  │  GitHub: X-Hub-Signature-256
-                    │  Signature   │  Stripe: Stripe-Signature v1
-                    └──────┬───────┘
-                     401 ◀─┤ valid
-                           │
-                    ┌──────▼───────┐
-                    │  Dedup Check │  Redis SET NX — 24 h TTL
-                    │   (Redis)    │  keyed on delivery UUID
-                    └──────┬───────┘
-                    skip ◀─┤ new
-                           │
-                    ┌──────▼───────┐
-                    │   Persist    │  PostgreSQL — status: PROCESSING
-                    │  (Postgres)  │
-                    └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │   RabbitMQ   │  TopicExchange
-                    │Topic Exchange│  routing key = event type
-                    └──────┬───────┘
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-         Payment        GitHub       Generic
-         Consumer       Consumer     Consumer
-              │            │            │
-              └────────────┼────────────┘
-                           │
-                  Resilience4j: @Retry + @CircuitBreaker
-                           │
-                  PROCESSED │ DEAD_LETTER ──▶ Discord Alert
+    ext --> wh --> sig
+    sig -- invalid --> rej(["401"])
+    sig -- valid --> dedup
+    dedup -- duplicate --> skip(["202 skip"])
+    dedup -- new --> db --> mq --> consumers --> r4j
+    r4j -- success --> done
+    r4j -- exhausted --> dl
 ```
 
 ## Request Flow
 
-```
-  Client                 Backend                 Infrastructure
-  ──────                 ───────                 ──────────────
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as WebhookController
+    participant S as IngestionService
+    participant R as Redis
+    participant PG as PostgreSQL
+    participant MQ as RabbitMQ
+    participant Con as Consumer
 
-  POST /webhooks/{src} ──▶ WebhookController
-                              │
-                         WebhookIngestionService
-                              │
-                    ┌─────────┼──────────┐
-                    ▼         ▼          ▼
-              SignatureVerifier  DeduplicationService  EventRoutingService
-                    │         │          │
-                    └─────────┼──────────┘
-                              │
-                         Save event ──────────────────▶ PostgreSQL
-                              │
-                         Publish msg ─────────────────▶ RabbitMQ
-                              │
-                         202 Accepted
-                              │
-                    (async) Consumer picks up
-                              │
-                    ┌─────────┴─────────┐
-                  success            failure (retry)
-                    │                   │
-              PROCESSED          retryCount++ ──▶ maxRetries?
-                                        │               │
-                                   rethrow          DEAD_LETTER
-                                  (Retry/CB)             │
-                                                  Discord embed
+    C->>API: POST /api/webhooks/{source}
+    API->>S: ingest()
+    S->>S: verify HMAC signature
+    S->>R: SET NX dedup key
+    R-->>S: new / duplicate
+    S->>PG: save event (PROCESSING)
+    S->>MQ: publish(routingKey, payload)
+    S-->>C: 202 Accepted
+    MQ->>Con: deliver message
+    Con->>Con: Retry + CircuitBreaker
+    Con->>PG: update → PROCESSED or DEAD_LETTER
 ```
 
 ## Tech Stack
@@ -109,28 +77,41 @@ I built EventRelay to understand what production webhook infrastructure actually
 
 ## Data Model
 
-**5 types** across **2 domains**
+**4 tables** across **2 domains**
 
-- **Sources & Events**: `WebhookSource`, `IncomingEvent` (with `EventStatus` enum: `PROCESSING` → `PROCESSED` / `FAILED` / `DEAD_LETTER`), `EventDelivery`
-- **Dead Letters**: `DeadLetterEvent` — persists exhausted events with full error context; replayable via API
+```mermaid
+erDiagram
+    WebhookSource ||--o{ IncomingEvent : "receives"
+    IncomingEvent ||--o{ EventDelivery : "tracked by"
+    IncomingEvent ||--o| DeadLetterEvent : "may become"
 
-```
-WebhookSource          IncomingEvent              EventDelivery
-─────────────          ─────────────              ─────────────
-id (PK)       ◀──┐    id (PK)                    id (PK)
-name               └── sourceId (FK)              eventId (FK) ──▶ IncomingEvent
-displayName         deliveryId (unique)            attemptNumber
-signingSecret       eventType                      status
-active              status (enum)                  errorMessage
-                    payload (JSONB)                processedAt
-                    retryCount
-                    maxRetries          DeadLetterEvent
-                    createdAt           ───────────────
-                                        id (PK)
-                                        eventId (FK)
-                                        errorMessage
-                                        replayed
-                                        replayedAt
+    WebhookSource {
+        long id PK
+        string name
+        string signingSecret
+        boolean active
+    }
+    IncomingEvent {
+        long id PK
+        string deliveryId
+        string eventType
+        EventStatus status
+        json payload
+        int retryCount
+        int maxRetries
+    }
+    EventDelivery {
+        long id PK
+        int attemptNumber
+        string status
+        string errorMessage
+    }
+    DeadLetterEvent {
+        long id PK
+        string errorMessage
+        boolean replayed
+        timestamp replayedAt
+    }
 ```
 
 ## API Highlights
@@ -223,7 +204,6 @@ docker compose up --build
 |---------|-----|
 | React Dashboard | http://localhost:3000 |
 | Backend API | http://localhost:8080/api |
-| OpenAPI (Swagger) | http://localhost:8080/swagger-ui.html |
 | RabbitMQ UI | http://localhost:15672 — guest / guest |
 
 ### Send a test webhook
